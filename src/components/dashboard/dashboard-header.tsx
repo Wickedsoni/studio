@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Bell } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NewMeetingDialog } from './new-meeting-dialog';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -46,7 +46,7 @@ export function DashboardHeader() {
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
