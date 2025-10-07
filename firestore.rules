@@ -1,123 +1,109 @@
 /**
- * @fileOverview Firestore Security Rules for MinuteMind application.
+ * @file Firebase Security Rules for MinuteMind Application
  *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model, ensuring that users can only
- * access their own data. It leverages path-based authorization for simplicity and
- * performance.
- *
- * Data Structure:
- * All data is nested under /users/{userId}, including meetings, minutes of meeting,
- * and templates. This hierarchical structure enables simple and efficient security rules.
- *
- * Key Security Decisions:
- * - Users can only access their own data.
- * - User listing is disallowed.
- * - Data validation is limited to authorization-critical fields for rapid iteration.
- *
- * Denormalization for Authorization:
- * The data model denormalizes the user ID into child documents to avoid costly `get()` calls
- * for authorization. For example, each meeting document contains the `userId` of its owner.
- *
- * Structural Segregation:
- * The rules use structural segregation to maintain a clear separation between user data,
- * meetings, minutes of meetings, and templates. This enhances security and simplifies access control.
+ * @corePhilosophy This ruleset enforces a strict user-ownership model. Only the authenticated user can access and modify data associated with their userId.
+ * @dataStructure All data is nested under /users/{userId}, creating a clear ownership hierarchy.  Meetings, Minutes of Meeting, and Templates are stored in user-specific subcollections.
+ * @keySecurityDecisions
+ *   - User listing is disallowed to protect privacy.
+ *   - All write operations require authentication.
+ *   - Data validation is limited to ownership checks for relational integrity during `create` and immutability during `update`.
+ *   - No `get()` calls are used for authorization, ensuring efficient rule execution.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secure user profiles. Only the authenticated user can read/write their own profile.
+     * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow (create) - Authenticated user with matching userId can create their profile.
-     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete their profile.
-     * @deny (create) - Authenticated user trying to create a profile with a mismatched userId.
-     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's profile.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @deny (create) - User with UID 'attackerUID' cannot create a profile for /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @deny (update) - User with UID 'attackerUID' cannot update the profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @deny (delete) - User with UID 'attackerUID' cannot delete the profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
+     * @deny (list) - Listing all users is not permitted.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secure meeting data. Only the owner (authenticated user) can read/write meetings under their profile.
+     * @description Manages meeting data for a specific user.
      * @path /users/{userId}/meetings/{meetingId}
-     * @allow (create) - Authenticated user with matching userId can create a meeting under their profile.
-     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete meetings under their profile.
-     * @deny (create) - Authenticated user trying to create a meeting with a mismatched userId.
-     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's meeting.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a meeting under their profile.
+     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a meeting under their profile.
+     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a meeting under their profile.
+     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all their meetings.
+     * @deny (create) - User with UID 'attackerUID' cannot create a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (update) - User with UID 'attackerUID' cannot update a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (delete) - User with UID 'attackerUID' cannot delete a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/meetings/{meetingId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secure minutes of meeting data. Only the owner (authenticated user) can read/write MoM data under their meetings.
+     * @description Manages Minutes of Meeting (MoM) data for a specific meeting.
      * @path /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}
-     * @allow (create) - Authenticated user with matching userId can create MoM data under their meeting.
-     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete MoM data under their meeting.
-     * @deny (create) - Authenticated user trying to create MoM data with a mismatched userId.
-     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's MoM data.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a MoM for their meeting.
+     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a MoM for their meeting.
+     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a MoM for their meeting.
+     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all MoMs for their meeting.
+     * @deny (create) - User with UID 'attackerUID' cannot create a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (update) - User with UID 'attackerUID' cannot update a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (delete) - User with UID 'attackerUID' cannot delete a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secure templates. Only the owner (authenticated user) can read/write templates under their profile.
+     * @description Manages templates created by a specific user.
      * @path /users/{userId}/templates/{templateId}
-     * @allow (create) - Authenticated user with matching userId can create a template under their profile.
-     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete templates under their profile.
-     * @deny (create) - Authenticated user trying to create a template with a mismatched userId.
-     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's template.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a template under their profile.
+     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a template under their profile.
+     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a template under their profile.
+     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all their templates.
+     * @deny (create) - User with UID 'attackerUID' cannot create a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (update) - User with UID 'attackerUID' cannot update a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @deny (delete) - User with UID 'attackerUID' cannot delete a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/templates/{templateId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
   }
 }
