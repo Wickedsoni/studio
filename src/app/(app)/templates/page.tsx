@@ -43,7 +43,7 @@ export default function TemplatesPage() {
             ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
-            accept=".json" // Assuming templates are JSON files
+            accept=".json,.txt,.doc,.docx,.pdf"
           />
         </div>
       </div>
