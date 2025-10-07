@@ -18,8 +18,39 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const ProfileFormSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  organization: z.string().optional(),
+});
 
 export default function SettingsPage() {
+  const form = useForm<z.infer<typeof ProfileFormSchema>>({
+    resolver: zodResolver(ProfileFormSchema),
+    defaultValues: {
+      name: 'User Name',
+      email: 'user@email.com',
+      organization: 'Acme Inc.',
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof ProfileFormSchema>) {
+    console.log('Profile changes saved:', values);
+    // In a real app, you would call an API to update the user's profile.
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="border-b p-4">
@@ -40,20 +71,54 @@ export default function SettingsPage() {
                   Update your personal information.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" defaultValue="User Name" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="user@email.com" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="organization">Organization</Label>
-                  <Input id="organization" defaultValue="Acme Inc." />
-                </div>
-                <Button>Save Changes</Button>
+              <CardContent>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="organization"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Organization</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit">Save Changes</Button>
+                  </form>
+                </Form>
               </CardContent>
             </Card>
           </TabsContent>
