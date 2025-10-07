@@ -4,14 +4,13 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   ConfirmationResult,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -37,13 +36,18 @@ export default function LoginPage() {
   const [confirmationResult, setConfirmationResult] =
     React.useState<ConfirmationResult | null>(null);
   const [loading, setLoading] = React.useState(false);
+  
+  // Ref for the reCAPTCHA container
+  const recaptchaContainerRef = React.useRef<HTMLDivElement>(null);
+  // Ref for the RecaptchaVerifier instance
   const recaptchaVerifierRef = React.useRef<RecaptchaVerifier | null>(null);
 
   React.useEffect(() => {
-    if (auth && !recaptchaVerifierRef.current) {
+    // Initialize reCAPTCHA verifier only once
+    if (auth && !recaptchaVerifierRef.current && recaptchaContainerRef.current) {
       recaptchaVerifierRef.current = new RecaptchaVerifier(
         auth,
-        'recaptcha-container',
+        recaptchaContainerRef.current,
         {
           size: 'invisible',
         }
@@ -59,7 +63,6 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Save user data to Firestore
       const userRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(
         userRef,
@@ -103,10 +106,19 @@ export default function LoginPage() {
       });
     } catch (error: any) {
       console.error('Phone sign-in error:', error);
+       // Reset reCAPTCHA on error
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.render().then((widgetId) => {
+          if(auth) {
+            // @ts-ignore
+            grecaptcha.reset(widgetId);
+          }
+        });
+      }
       toast({
         variant: 'destructive',
         title: 'Phone Sign-in Failed',
-        description: 'Could not send OTP. Please check the phone number.',
+        description: error.message || 'Could not send OTP. Please check the phone number and try again.',
       });
     } finally {
       setLoading(false);
@@ -120,12 +132,11 @@ export default function LoginPage() {
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
 
-       // Save user data to Firestore
       const userRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(
         userRef,
         {
-          phoneNumber: user.phoneNumber
+          phoneNumber: user.phoneNumber,
         },
         { merge: true }
       );
@@ -156,6 +167,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
+        <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
         <Button
           variant="outline"
           onClick={handleGoogleSignIn}
@@ -210,7 +222,6 @@ export default function LoginPage() {
             </Button>
           </div>
         )}
-        <div id="recaptcha-container"></div>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="underline">
