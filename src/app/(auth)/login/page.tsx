@@ -109,9 +109,9 @@ export default function LoginPage() {
        // Reset reCAPTCHA on error
       if (recaptchaVerifierRef.current) {
         recaptchaVerifierRef.current.render().then((widgetId) => {
-          if(auth) {
+          if(auth && (window as any).grecaptcha) {
             // @ts-ignore
-            grecaptcha.reset(widgetId);
+            (window as any).grecaptcha.reset(widgetId);
           }
         });
       }
