@@ -1,3 +1,6 @@
+
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,6 +16,7 @@ import {
   Download,
   Printer,
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function MeetingDetailsPage({
   params,
@@ -47,6 +51,32 @@ export default function MeetingDetailsPage({
     ],
   };
 
+  const generateMailtoLink = () => {
+    const subject = `Minutes of Meeting: ${meeting.title}`;
+    const body = `
+Meeting: ${meeting.title}
+Date: ${meeting.date}
+Time: ${meeting.time}
+
+Attendees:
+${meeting.attendees.join('\n')}
+
+Agenda:
+${meeting.agenda}
+
+Discussion Points:
+${meeting.discussionPoints.map((point) => `- ${point}`).join('\n')}
+
+Decisions:
+${meeting.decisions.map((decision) => `- ${decision}`).join('\n')}
+
+Action Items:
+${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
+    `;
+
+    return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   return (
     <div className="flex-1 p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
@@ -62,8 +92,10 @@ export default function MeetingDetailsPage({
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" /> Download
             </Button>
-            <Button>
-              <Send className="mr-2 h-4 w-4" /> Send Email
+            <Button asChild>
+              <Link href={generateMailtoLink()}>
+                <Send className="mr-2 h-4 w-4" /> Send Email
+              </Link>
             </Button>
           </div>
         </div>
