@@ -22,6 +22,13 @@ import { ArrowRight } from 'lucide-react';
 export function MeetingHistory() {
   const meetings = MOCK_MEETINGS;
 
+  const isLive = (date: string) => {
+    const meetingDate = new Date(date);
+    const now = new Date();
+    // Assuming a meeting is "live" if it started in the last hour
+    return now.getTime() - meetingDate.getTime() < 60 * 60 * 1000 && now > meetingDate;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -37,6 +44,7 @@ export function MeetingHistory() {
               <TableHead>Title</TableHead>
               <TableHead className="hidden sm:table-cell">Date</TableHead>
               <TableHead className="hidden md:table-cell text-center">Participants</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -49,6 +57,17 @@ export function MeetingHistory() {
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-center">
                   <Badge variant="secondary">{meeting.participants}</Badge>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {isLive(meeting.date) ? (
+                    <Badge variant='destructive' className="flex items-center w-fit">
+                      <span className="relative flex h-2 w-2 mr-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                      </span>
+                      Live
+                    </Badge>
+                  ) : <Badge variant='outline'>Finished</Badge>}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button asChild variant="ghost" size="sm">
