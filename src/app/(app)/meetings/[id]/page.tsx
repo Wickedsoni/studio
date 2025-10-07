@@ -21,6 +21,10 @@ import {
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 export default function MeetingDetailsPage({
   params,
@@ -28,6 +32,9 @@ export default function MeetingDetailsPage({
   params: { id: string };
 }) {
   const resolvedParams = React.use(params);
+
+  const attendeeAvatars = PlaceHolderImages.filter(p => p.id.startsWith('attendee-avatar-'));
+
   // In a real app, you would fetch meeting data based on params.id
   // For now, we'll use static data.
   const meeting = {
@@ -39,7 +46,18 @@ export default function MeetingDetailsPage({
       name: 'John Doe',
       email: 'john.doe@example.com'
     },
-    attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi', 'Ivan', 'Judy'],
+    attendees: [
+      { name: 'Alice', email: 'alice@example.com', avatar: attendeeAvatars[0]?.imageUrl, hint: attendeeAvatars[0]?.imageHint },
+      { name: 'Bob', email: 'bob@example.com', avatar: attendeeAvatars[1]?.imageUrl, hint: attendeeAvatars[1]?.imageHint },
+      { name: 'Charlie', email: 'charlie@example.com', avatar: attendeeAvatars[2]?.imageUrl, hint: attendeeAvatars[2]?.imageHint },
+      { name: 'David', email: 'david@example.com', avatar: attendeeAvatars[3]?.imageUrl, hint: attendeeAvatars[3]?.imageHint },
+      { name: 'Eve', email: 'eve@example.com', avatar: attendeeAvatars[4]?.imageUrl, hint: attendeeAvatars[4]?.imageHint },
+      { name: 'Frank', email: 'frank@example.com', avatar: attendeeAvatars[5]?.imageUrl, hint: attendeeAvatars[5]?.imageHint },
+      { name: 'Grace', email: 'grace@example.com', avatar: attendeeAvatars[6]?.imageUrl, hint: attendeeAvatars[6]?.imageHint },
+      { name: 'Heidi', email: 'heid@example.com', avatar: null, hint: 'female avatar' },
+      { name: 'Ivan', email: 'ivan@example.com', avatar: null, hint: 'male avatar' },
+      { name: 'Judy', email: 'judy@example.com', avatar: null, hint: 'female avatar' },
+    ],
     agenda: 'To align on the goals, scope, and timeline for the Q3 project.',
     discussionPoints: [
       'Review of Q2 performance and key learnings.',
@@ -69,7 +87,7 @@ Time: ${meeting.time}
 Host: ${meeting.host.name} (${meeting.host.email})
 
 Attendees:
-${meeting.attendees.join('\n')}
+${meeting.attendees.map(a => `${a.name} <${a.email}>`).join('\n')}
 
 Agenda:
 ${meeting.agenda}
@@ -161,34 +179,61 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
                 <h3 className="mb-2 text-lg font-semibold font-headline">
                   Attendees
                 </h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  {meeting.attendees.slice(0, maxDisplayedAttendees).map((name) => (
-                    <Badge key={name} variant="secondary">
-                      {name}
-                    </Badge>
-                  ))}
-                  {remainingAttendeesCount > 0 && (
-                     <Popover>
-                        <PopoverTrigger asChild>
-                          <Badge variant="outline" className="cursor-pointer">
-                            +{remainingAttendeesCount} more
+                <TooltipProvider>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {meeting.attendees.slice(0, maxDisplayedAttendees).map((attendee) => (
+                      <Tooltip key={attendee.email}>
+                        <TooltipTrigger>
+                          <Badge variant="secondary" className="cursor-default">
+                            {attendee.name}
                           </Badge>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                           <ScrollArea className="h-48">
-                            <div className="p-4">
-                               <h4 className="mb-2 font-medium leading-none">All Attendees</h4>
-                               <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                {meeting.attendees.map((name) => (
-                                  <li key={name}>{name}</li>
-                                ))}
-                              </ul>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={attendee.avatar || ''} data-ai-hint={attendee.hint} />
+                              <AvatarFallback>{attendee.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold">{attendee.name}</p>
+                              <p className="text-sm text-muted-foreground">{attendee.email}</p>
                             </div>
-                          </ScrollArea>
-                        </PopoverContent>
-                      </Popover>
-                  )}
-                </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                    {remainingAttendeesCount > 0 && (
+                       <Popover>
+                          <PopoverTrigger asChild>
+                            <Badge variant="outline" className="cursor-pointer">
+                              +{remainingAttendeesCount} more
+                            </Badge>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                             <ScrollArea className="h-64">
+                              <div className="p-2">
+                                 <h4 className="mb-2 px-2 py-1.5 text-base font-semibold leading-none">All Attendees</h4>
+                                 <ul className="space-y-1">
+                                  {meeting.attendees.map((attendee) => (
+                                    <li key={attendee.email} className="flex items-center gap-3 rounded-md px-2 py-1.5 text-base hover:bg-muted">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarImage src={attendee.avatar || ''} data-ai-hint={attendee.hint} />
+                                        <AvatarFallback>{attendee.name[0]}</AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-medium">{attendee.name}</p>
+                                        <p className="text-sm text-muted-foreground">{attendee.email}</p>
+                                      </div>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </ScrollArea>
+                          </PopoverContent>
+                        </Popover>
+                    )}
+                  </div>
+                </TooltipProvider>
               </div>
             </div>
 
