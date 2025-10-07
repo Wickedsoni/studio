@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { MeetingHistory } from '@/components/dashboard/meeting-history';
@@ -22,7 +23,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-4 md:p-8">
         <div className="grid gap-8">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <Card className="bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Minutes Generated
@@ -34,7 +35,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">+5 this month</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Hours Saved
@@ -48,7 +49,7 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   My Templates
