@@ -1,109 +1,153 @@
 /**
- * @file Firebase Security Rules for MinuteMind Application
+ * @fileOverview
+ * This ruleset enforces a strict user-ownership model for all data.
+ * All data is nested under /users/{userId}, ensuring that only the authenticated user can access their own data.
  *
- * @corePhilosophy This ruleset enforces a strict user-ownership model. Only the authenticated user can access and modify data associated with their userId.
- * @dataStructure All data is nested under /users/{userId}, creating a clear ownership hierarchy.  Meetings, Minutes of Meeting, and Templates are stored in user-specific subcollections.
- * @keySecurityDecisions
- *   - User listing is disallowed to protect privacy.
- *   - All write operations require authentication.
- *   - Data validation is limited to ownership checks for relational integrity during `create` and immutability during `update`.
- *   - No `get()` calls are used for authorization, ensuring efficient rule execution.
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information. Only the user can read/write their own profile.
+ * - /users/{userId}/meetings/{meetingId}: Stores meeting data for a user. Only the user can read/write their meetings.
+ * - /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}: Stores minutes of meeting data. Only the user can read/write.
+ * - /users/{userId}/templates/{templateId}: Stores templates created by the user. Only the user can read/write their own templates.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed to protect privacy.
+ * - All write operations are strictly controlled via the isOwner() function, ensuring that only the authenticated user can modify data under their userId.
+ * - Data validation is minimal in this prototyping phase, focusing only on ownership checks and relational integrity.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages user profile data.
+     * @description Controls access to user profile data.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get their own profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @deny (create) - User with UID 'attackerUID' cannot create a profile for /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @deny (update) - User with UID 'attackerUID' cannot update the profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @deny (delete) - User with UID 'attackerUID' cannot delete the profile at /users/dNeA9CQJSHW8jr1IXs5WfnhtSpl2.
-     * @deny (list) - Listing all users is not permitted.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) User with UID 'user123' can create their profile at /users/user123.
+     * @deny (create) User with UID 'user456' cannot create a profile at /users/user123.
+     * @allow (update) User with UID 'user123' can update their profile at /users/user123.
+     * @deny (update) User with UID 'user456' cannot update the profile at /users/user123.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Helper function to check if the authenticated user is the existing owner of the document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages meeting data for a specific user.
+     * @description Controls access to meeting data for a specific user.
      * @path /users/{userId}/meetings/{meetingId}
-     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a meeting under their profile.
-     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a meeting under their profile.
-     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a meeting under their profile.
-     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all their meetings.
-     * @deny (create) - User with UID 'attackerUID' cannot create a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (update) - User with UID 'attackerUID' cannot update a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (delete) - User with UID 'attackerUID' cannot delete a meeting for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) User 'user123' can create a meeting under /users/user123/meetings/meeting1.
+     * @deny (create) User 'user456' cannot create a meeting under /users/user123/meetings/meeting1.
+     * @allow (update) User 'user123' can update a meeting under /users/user123/meetings/meeting1.
+     * @deny (update) User 'user456' cannot update a meeting under /users/user123/meetings/meeting1.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/meetings/{meetingId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Helper function to check if the authenticated user is the existing owner of the document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages Minutes of Meeting (MoM) data for a specific meeting.
+     * @description Controls access to Minutes of Meeting data for a specific meeting.
      * @path /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}
-     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a MoM for their meeting.
-     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a MoM for their meeting.
-     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a MoM for their meeting.
-     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all MoMs for their meeting.
-     * @deny (create) - User with UID 'attackerUID' cannot create a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (update) - User with UID 'attackerUID' cannot update a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (delete) - User with UID 'attackerUID' cannot delete a MoM for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) User 'user123' can create MoM data under /users/user123/meetings/meeting1/minutesOfMeeting/mom1.
+     * @deny (create) User 'user456' cannot create MoM data under /users/user123/meetings/meeting1/minutesOfMeeting/mom1.
+     * @allow (update) User 'user123' can update MoM data under /users/user123/meetings/meeting1/minutesOfMeeting/mom1.
+     * @deny (update) User 'user456' cannot update MoM data under /users/user123/meetings/meeting1/minutesOfMeeting/mom1.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Helper function to check if the authenticated user is the existing owner of the document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
+
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages templates created by a specific user.
+     * @description Controls access to template data created by a specific user.
      * @path /users/{userId}/templates/{templateId}
-     * @allow (create) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can create a template under their profile.
-     * @allow (update) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can update a template under their profile.
-     * @allow (get) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can get a template under their profile.
-     * @allow (list) - User with UID 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2' can list all their templates.
-     * @deny (create) - User with UID 'attackerUID' cannot create a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (update) - User with UID 'attackerUID' cannot update a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @deny (delete) - User with UID 'attackerUID' cannot delete a template for user 'dNeA9CQJSHW8jr1IXs5WfnhtSpl2'.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @allow (create) User 'user123' can create a template under /users/user123/templates/template1.
+     * @deny (create) User 'user456' cannot create a template under /users/user123/templates/template1.
+     * @allow (update) User 'user123' can update a template under /users/user123/templates/template1.
+     * @deny (update) User 'user456' cannot update a template under /users/user123/templates/template1.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/templates/{templateId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Helper function to check if the authenticated user is the existing owner of the document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
-  }
-
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
   }
 }
