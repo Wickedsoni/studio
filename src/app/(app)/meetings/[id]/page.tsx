@@ -16,6 +16,7 @@ import {
   Send,
   Download,
   Printer,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,6 +33,10 @@ export default function MeetingDetailsPage({
     title: 'Q3 Project Kick-off',
     date: 'October 26, 2023',
     time: '10:00 AM - 10:45 AM',
+    host: {
+      name: 'John Doe',
+      email: 'john.doe@example.com'
+    },
     attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
     agenda: 'To align on the goals, scope, and timeline for the Q3 project.',
     discussionPoints: [
@@ -58,6 +63,8 @@ export default function MeetingDetailsPage({
 Meeting: ${meeting.title}
 Date: ${meeting.date}
 Time: ${meeting.time}
+
+Host: ${meeting.host.name} (${meeting.host.email})
 
 Attendees:
 ${meeting.attendees.join('\n')}
@@ -135,16 +142,27 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
               </div>
             </div>
 
-            <div className="mb-6">
-              <h3 className="mb-2 text-lg font-semibold font-headline">
-                Attendees
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {meeting.attendees.map((name) => (
-                  <Badge key={name} variant="secondary">
-                    {name}
-                  </Badge>
-                ))}
+            <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+               <div>
+                  <h3 className="mb-2 text-lg font-semibold font-headline">
+                    Host
+                  </h3>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span>{meeting.host.name} ({meeting.host.email})</span>
+                  </div>
+                </div>
+              <div>
+                <h3 className="mb-2 text-lg font-semibold font-headline">
+                  Attendees
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {meeting.attendees.map((name) => (
+                    <Badge key={name} variant="secondary">
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
 
