@@ -90,7 +90,7 @@ body {
     background-image: linear-gradient(
       to bottom right,
       hsl(222.2 84% 4.9%),
-      hsl(258 78% 25%),
+      hsl(258 78% 35%),
       hsl(222.2 84% 4.9%)
     );
   }
@@ -99,7 +99,7 @@ body {
     background-image: linear-gradient(
       to bottom right,
       hsl(222.2 84% 4.9% / 0.8),
-      hsl(258 78% 20% / 0.8)
+      hsl(258 78% 30% / 0.8)
     );
     backdrop-filter: blur(8px);
   }
