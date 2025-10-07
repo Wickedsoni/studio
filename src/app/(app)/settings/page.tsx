@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import {
   Tabs,
@@ -29,6 +28,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useUser } from '@/context/user-provider';
+import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const ProfileFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
@@ -37,18 +39,24 @@ const ProfileFormSchema = z.object({
 });
 
 export default function SettingsPage() {
+  const { user, setUser } = useUser();
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof ProfileFormSchema>>({
     resolver: zodResolver(ProfileFormSchema),
-    defaultValues: {
-      name: 'User Name',
-      email: 'user@email.com',
-      organization: 'Acme Inc.',
-    },
+    defaultValues: user,
   });
 
+  useEffect(() => {
+    form.reset(user);
+  }, [user, form]);
+
   function onSubmit(values: z.infer<typeof ProfileFormSchema>) {
-    console.log('Profile changes saved:', values);
-    // In a real app, you would call an API to update the user's profile.
+    setUser(values);
+    toast({
+      title: 'Profile Updated',
+      description: 'Your changes have been saved successfully.',
+    });
   }
 
   return (
@@ -163,12 +171,12 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center justify-between rounded-lg border p-4">
                   <div>
-                    <Label htmlFor="email-updates">Product Updates</Label>
+                    <Label htmlFor="product-updates">Product Updates</Label>
                     <p className="text-sm text-muted-foreground">
                       Receive occasional updates about new features.
                     </p>
                   </div>
-                  <Switch id="email-updates" />
+                  <Switch id="product-updates" />
                 </div>
               </CardContent>
             </Card>
