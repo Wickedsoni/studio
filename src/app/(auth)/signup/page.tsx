@@ -13,8 +13,8 @@ export default function SignupPage() {
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Sign Up</CardTitle>
         <CardDescription>
-          Please return to the login page. This application only supports
-          Google and Phone authentication.
+          To create an account, please return to the login page and use Google
+          or Phone authentication. New users will be automatically registered.
         </CardDescription>
       </CardHeader>
       <CardContent>

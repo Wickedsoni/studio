@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   getAuth,
@@ -210,6 +211,12 @@ export default function LoginPage() {
           </div>
         )}
         <div id="recaptcha-container"></div>
+        <div className="mt-4 text-center text-sm">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="underline">
+            Sign up
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
