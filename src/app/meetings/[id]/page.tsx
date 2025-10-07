@@ -49,7 +49,7 @@ export default function MeetingDetailsPage({
   // In a real app, you would fetch meeting data based on params.id
   // For now, we'll use a mix of static data and the summary from the URL.
   const meeting = {
-    id: params.id,
+    id: params?.id || '',
     title: parsedSummary?.title || 'Meeting Details',
     date: new Date().toLocaleDateString(),
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
