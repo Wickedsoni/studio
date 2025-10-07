@@ -47,8 +47,10 @@ export default function TemplatesPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex-col items-stretch gap-2 md:flex-row">
-                <Button className="w-full">Use Template</Button>
-                <Button variant="secondary" className="w-full">
+                <Button size="sm" className="w-full">
+                  Use Template
+                </Button>
+                <Button size="sm" variant="secondary" className="w-full">
                   <Lightbulb className="mr-2 h-4 w-4" />
                   Suggest New
                 </Button>
