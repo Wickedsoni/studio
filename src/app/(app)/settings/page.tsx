@@ -28,9 +28,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useUser } from '@/context/user-provider';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateProfile } from 'firebase/auth';
 
 const ProfileFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
@@ -39,24 +42,61 @@ const ProfileFormSchema = z.object({
 });
 
 export default function SettingsPage() {
-  const { user, setUser } = useUser();
+  const { user, auth, firestore } = useFirebase();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof ProfileFormSchema>>({
     resolver: zodResolver(ProfileFormSchema),
-    defaultValues: user,
+    defaultValues: {
+      name: '',
+      email: '',
+      organization: '',
+    },
   });
 
   useEffect(() => {
-    form.reset(user);
+    if (user) {
+      form.reset({
+        name: user.displayName || '',
+        email: user.email || '',
+        organization: '', // You might need to fetch this from Firestore
+      });
+    }
   }, [user, form]);
 
-  function onSubmit(values: z.infer<typeof ProfileFormSchema>) {
-    setUser(values);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your changes have been saved successfully.',
-    });
+  async function onSubmit(values: z.infer<typeof ProfileFormSchema>) {
+    if (!user || !auth || !firestore) return;
+    
+    try {
+      // Update Firebase Auth profile
+      await updateProfile(auth.currentUser!, {
+        displayName: values.name,
+        // Email update requires separate verification flow, skipping for now
+      });
+
+      // Update Firestore document
+      const userRef = doc(firestore, 'users', user.uid);
+      setDocumentNonBlocking(
+        userRef,
+        {
+          name: values.name,
+          organization: values.organization,
+        },
+        { merge: true }
+      );
+      
+      toast({
+        title: 'Profile Updated',
+        description: 'Your changes have been saved successfully.',
+      });
+    } catch (error) {
+       console.error("Error updating profile:", error);
+       toast({
+         variant: "destructive",
+         title: "Update Failed",
+         description: "Could not update your profile.",
+       });
+    }
   }
 
   return (
@@ -105,7 +145,7 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input type="email" {...field} />
+                            <Input type="email" {...field} disabled />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

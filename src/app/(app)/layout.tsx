@@ -1,7 +1,8 @@
 'use client';
 
 import { CircleUser, LogOut, Settings, BotMessageSquare } from 'lucide-react';
-import { UserProvider, useUser } from '@/context/user-provider';
+import { useRouter } from 'next/navigation';
+import { useFirebase } from '@/firebase';
 
 import {
   SidebarProvider,
@@ -26,8 +27,19 @@ import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function UserAvatar() {
-  const { user } = useUser();
+  const { auth, user } = useFirebase();
+  const router = useRouter();
   const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar');
+
+  const handleLogout = async () => {
+    if (auth) {
+      await auth.signOut();
+      router.push('/login');
+    }
+  };
+
+  const userName = user?.displayName || user?.email || 'User';
+  const userEmail = user?.email || '';
 
   return (
     <DropdownMenu>
@@ -41,11 +53,11 @@ function UserAvatar() {
               src={userAvatar?.imageUrl}
               data-ai-hint={userAvatar?.imageHint}
             />
-            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
+            <AvatarFallback>{userName?.[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div className="text-left group-data-[collapsible=icon]:hidden">
-            <p className="font-medium">{user.name}</p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="font-medium">{userName}</p>
+            <p className="text-xs text-muted-foreground">{userEmail}</p>
           </div>
         </Button>
       </DropdownMenuTrigger>
@@ -61,7 +73,7 @@ function UserAvatar() {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
@@ -72,7 +84,6 @@ function UserAvatar() {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UserProvider>
       <SidebarProvider>
         <Sidebar variant="inset" collapsible="icon">
           <SidebarHeader>
@@ -92,6 +103,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Sidebar>
         <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
-    </UserProvider>
   );
 }
