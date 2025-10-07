@@ -34,11 +34,16 @@ export default function MeetingDetailsPage({
   const [meetingId, setMeetingId] = React.useState('');
   const searchParams = useSearchParams();
   const summaryParam = searchParams.get('summary');
+  const [clientDate, setClientDate] = React.useState('');
+  const [clientTime, setClientTime] = React.useState('');
 
   React.useEffect(() => {
     if (params.id) {
       setMeetingId(params.id);
     }
+    // Set date and time on the client to avoid hydration mismatch
+    setClientDate(new Date().toLocaleDateString());
+    setClientTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
   }, [params.id]);
 
   const parsedSummary: GenerateMeetingSummaryOutput | null = React.useMemo(() => {
@@ -58,8 +63,8 @@ export default function MeetingDetailsPage({
   const meeting = {
     id: meetingId,
     title: parsedSummary?.title || 'Meeting Details',
-    date: new Date().toLocaleDateString(),
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    date: clientDate,
+    time: clientTime,
     host: {
       name: 'John Doe',
       email: 'john.doe@example.com'
