@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "MinuteMind - AI Meeting Minutes",
+  "version": "1.0",
+  "description": "Generate meeting minutes with AI, directly from Google Meet.",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "add_on": {
+    "name": "MinuteMind",
+    "logo": "https://storage.googleapis.com/studioprod/92c9063c-3969-429a-9694-01046927a44f/icon128.png",
+    "primary_color": "#9362F1",
+    "secondary_color": "#F5F5F5",
+    "side_panel": {
+      "initial_width_px": 400,
+      "page": "/meet"
+    }
+  },
+  "action": {
+    "default_title": "Open MinuteMind"
+  },
+  "host_permissions": [
+    "https://meet.google.com/*"
+  ]
+}

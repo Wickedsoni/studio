@@ -27,11 +27,12 @@ export function NewMeetingDialog({ children }: { children: React.ReactNode }) {
     e.preventDefault();
     setIsProcessing(true);
     // Simulate AI processing
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const newMeetingId = `meet-${Date.now()}`;
     setIsProcessing(false);
     setOpen(false);
     // Redirect to a mock meeting results page
-    router.push('/meetings/123');
+    router.push(`/meetings/${newMeetingId}`);
   };
 
   return (
@@ -55,7 +56,7 @@ export function NewMeetingDialog({ children }: { children: React.ReactNode }) {
               <FileText className="mr-2 h-4 w-4" />
               Text
             </TabsTrigger>
-            <TabsTrigger value="link">
+            <TabsTrigger value="link" disabled>
               <LinkIcon className="mr-2 h-4 w-4" />
               Link
             </TabsTrigger>
@@ -93,27 +94,6 @@ export function NewMeetingDialog({ children }: { children: React.ReactNode }) {
                 )}
                 {isProcessing ? 'Processing...' : 'Generate Minutes'}
               </Button>
-            </form>
-          </TabsContent>
-          <TabsContent value="link" className="pt-4">
-            <form onSubmit={handleGenerate}>
-              <div className="grid gap-4">
-                <Label htmlFor="meeting-link">Meeting Link</Label>
-                <Input
-                  id="meeting-link"
-                  type="url"
-                  placeholder="https://meet.google.com/..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Link to Google Meet, Zoom, etc.
-                </p>
-                <Button type="submit" disabled={isProcessing}>
-                  {isProcessing && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isProcessing ? 'Processing...' : 'Generate Minutes'}
-                </Button>
-              </div>
             </form>
           </TabsContent>
         </Tabs>
