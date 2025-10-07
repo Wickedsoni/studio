@@ -79,12 +79,20 @@ export default function LoginPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-in Failed',
-        description: error.message,
-      });
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          variant: 'default',
+          title: 'Sign-in Canceled',
+          description: 'You closed the sign-in window before completing the process.',
+        });
+      } else {
+        console.error('Google sign-in error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-in Failed',
+          description: error.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
