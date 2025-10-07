@@ -56,7 +56,7 @@ export function NewMeetingDialog({ children }: { children: React.ReactNode }) {
               <FileText className="mr-2 h-4 w-4" />
               Text
             </TabsTrigger>
-            <TabsTrigger value="link" disabled>
+            <TabsTrigger value="link">
               <LinkIcon className="mr-2 h-4 w-4" />
               Link
             </TabsTrigger>
@@ -87,6 +87,21 @@ export function NewMeetingDialog({ children }: { children: React.ReactNode }) {
                 id="transcript-text"
                 placeholder="Paste your meeting transcript here..."
                 className="min-h-[150px]"
+              />
+              <Button type="submit" disabled={isProcessing}>
+                {isProcessing && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isProcessing ? 'Processing...' : 'Generate Minutes'}
+              </Button>
+            </form>
+          </TabsContent>
+          <TabsContent value="link" className="pt-4">
+            <form onSubmit={handleGenerate} className="grid gap-4">
+              <Label htmlFor="meeting-link">Paste Link</Label>
+              <Input
+                id="meeting-link"
+                placeholder="https://example.com/meeting-recording"
               />
               <Button type="submit" disabled={isProcessing}>
                 {isProcessing && (
