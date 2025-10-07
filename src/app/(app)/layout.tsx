@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleUser, LogOut, Settings, BrainCircuit } from 'lucide-react';
+import { CircleUser, LogOut, Settings, BotMessageSquare } from 'lucide-react';
 import { UserProvider, useUser } from '@/context/user-provider';
 
 import {
@@ -80,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Logo />
             </div>
             <div className="hidden p-2 group-data-[collapsible=icon]:block">
-              <BrainCircuit className="h-6 w-6 text-primary" />
+              <BotMessageSquare className="h-6 w-6 text-primary" />
             </div>
           </SidebarHeader>
           <SidebarContent>

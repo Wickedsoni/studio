@@ -54,7 +54,7 @@ export default function MeetPage() {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-background p-4">
         <div className="space-y-4 text-center">
-          <h1 className="text-2xl font-headline">Welcome to MinuteMind</h1>
+          <h1 className="text-2xl font-headline">Welcome to CogniMeet</h1>
           <p className="text-muted-foreground">
             This is the add-on view, but it seems you are not in Google Meet.
           </p>
@@ -72,7 +72,7 @@ export default function MeetPage() {
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-background p-4">
       <div className="space-y-4 text-center">
-        <h1 className="text-2xl font-headline">MinuteMind is Active</h1>
+        <h1 className="text-2xl font-headline">CogniMeet is Active</h1>
         <p className="text-muted-foreground">
           Ready to generate minutes for this meeting.
         </p>

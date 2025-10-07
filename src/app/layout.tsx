@@ -4,8 +4,8 @@ import './globals.css';
 import { MeetAddonProvider } from '@/components/meet/meet-addon-provider';
 
 export const metadata: Metadata = {
-  title: 'MinuteMind',
-  description: 'Generate Minutes of Meeting with AI',
+  title: 'CogniMeet',
+  description: 'AI-Powered Meeting Summaries',
 };
 
 export default function RootLayout({
