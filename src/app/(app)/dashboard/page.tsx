@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { MeetingHistory } from '@/components/dashboard/meeting-history';
 import {
@@ -7,7 +8,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Upload, Clock, Users } from 'lucide-react';
+import {
+  FileText,
+  Clock,
+  ClipboardList,
+  ArrowRight,
+} from 'lucide-react';
 
 export default function DashboardPage() {
   return (
@@ -47,13 +53,15 @@ export default function DashboardPage() {
                 <CardTitle className="text-sm font-medium">
                   My Templates
                 </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <ClipboardList className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">3</div>
-                <Button size="sm" variant="outline" className="mt-2">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Manage Templates
+                <Button asChild size="sm" variant="outline" className="mt-2">
+                  <Link href="/templates">
+                    Manage Templates
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

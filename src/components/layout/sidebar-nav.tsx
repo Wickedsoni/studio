@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Settings, FileClock } from 'lucide-react';
+import { Home, Settings, FileClock, ClipboardList } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -21,6 +21,12 @@ const navItems = [
     icon: <FileClock />,
     label: 'All Meetings',
     tooltip: 'All Meetings',
+  },
+  {
+    href: '/templates',
+    icon: <ClipboardList />,
+    label: 'Templates',
+    tooltip: 'Templates',
   },
   {
     href: '/settings',
