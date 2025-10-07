@@ -84,6 +84,21 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(221.2 83.2% 95%),
+      hsl(0 0% 100%),
+      hsl(221.2 83.2% 95%)
+    );
+  }
+
+  [data-sidebar='sidebar'] {
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(222.2 84% 4.9% / 0.9),
+      hsl(222.2 84% 10% / 0.9)
+    );
+    backdrop-filter: blur(8px);
   }
 
   .dark body {
