@@ -22,33 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-const personalEmailDomains = [
-  'gmail.com',
-  'yahoo.com',
-  'outlook.com',
-  'hotmail.com',
-  'aol.com',
-  'icloud.com',
-  'zoho.com',
-  'yandex.com',
-  'gmx.com',
-  'protonmail.com',
-];
-
 const LoginFormSchema = z.object({
-  email: z
-    .string()
-    .email({ message: 'Invalid email address.' })
-    .refine(
-      (email) => {
-        const domain = email.split('@')[1];
-        return !personalEmailDomains.includes(domain);
-      },
-      {
-        message:
-          'Please use a corporate, university, or college email address.',
-      }
-    ),
+  email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
@@ -71,8 +46,7 @@ export function LoginForm() {
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Login</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account. Use a corporate or
-          academic email.
+          Enter your email below to login to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -85,7 +59,7 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@company.com" {...field} />
+                    <Input placeholder="name@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
