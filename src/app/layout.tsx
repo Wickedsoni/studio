@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { MeetAddonProvider } from '@/components/meet/meet-addon-provider';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'CogniMeet',
@@ -28,10 +29,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <MeetAddonProvider>
-          {children}
-          <Toaster />
-        </MeetAddonProvider>
+        <FirebaseClientProvider>
+          <MeetAddonProvider>
+            {children}
+            <Toaster />
+          </MeetAddonProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
