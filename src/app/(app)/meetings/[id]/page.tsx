@@ -37,7 +37,7 @@ export default function MeetingDetailsPage({
       name: 'John Doe',
       email: 'john.doe@example.com'
     },
-    attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
+    attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
     agenda: 'To align on the goals, scope, and timeline for the Q3 project.',
     discussionPoints: [
       'Review of Q2 performance and key learnings.',
@@ -101,6 +101,9 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
+  const maxDisplayedAttendees = 4;
+  const remainingAttendeesCount = meeting.attendees.length - maxDisplayedAttendees;
 
   return (
     <div className="flex-1 p-4 md:p-8">
@@ -156,12 +159,17 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
                 <h3 className="mb-2 text-lg font-semibold font-headline">
                   Attendees
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {meeting.attendees.map((name) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  {meeting.attendees.slice(0, maxDisplayedAttendees).map((name) => (
                     <Badge key={name} variant="secondary">
                       {name}
                     </Badge>
                   ))}
+                  {remainingAttendeesCount > 0 && (
+                     <Badge variant="outline">
+                      +{remainingAttendeesCount} more
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
