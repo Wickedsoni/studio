@@ -48,7 +48,7 @@ export default function MeetingDetailsPage({
   };
 
   return (
-    <div className="flex-1 bg-muted/40 p-4 md:p-8">
+    <div className="flex-1 p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>

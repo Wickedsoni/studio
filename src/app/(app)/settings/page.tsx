@@ -8,7 +8,7 @@ import {
 
 export default function SettingsPage() {
   return (
-    <div className="flex flex-1 flex-col bg-muted/40">
+    <div className="flex flex-1 flex-col">
       <div className="border-b p-4">
         <h1 className="text-3xl font-bold font-headline">Settings</h1>
       </div>

@@ -11,7 +11,7 @@ import { FileText, Upload, Clock, Users } from 'lucide-react';
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-1 flex-col bg-muted/40">
+    <div className="flex flex-1 flex-col">
       <DashboardHeader />
       <main className="flex-1 p-4 md:p-8">
         <div className="grid gap-8">
