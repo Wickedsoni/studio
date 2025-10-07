@@ -65,7 +65,6 @@ export default function LoginPage() {
         {
           name: user.displayName,
           email: user.email,
-          uid: user.uid,
         },
         { merge: true }
       );
@@ -125,7 +124,6 @@ export default function LoginPage() {
       setDocumentNonBlocking(
         userRef,
         {
-          uid: user.uid,
           phoneNumber: user.phoneNumber
         },
         { merge: true }
