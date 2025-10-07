@@ -1,0 +1,123 @@
+/**
+ * @fileOverview Firestore Security Rules for MinuteMind application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model, ensuring that users can only
+ * access their own data. It leverages path-based authorization for simplicity and
+ * performance.
+ *
+ * Data Structure:
+ * All data is nested under /users/{userId}, including meetings, minutes of meeting,
+ * and templates. This hierarchical structure enables simple and efficient security rules.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own data.
+ * - User listing is disallowed.
+ * - Data validation is limited to authorization-critical fields for rapid iteration.
+ *
+ * Denormalization for Authorization:
+ * The data model denormalizes the user ID into child documents to avoid costly `get()` calls
+ * for authorization. For example, each meeting document contains the `userId` of its owner.
+ *
+ * Structural Segregation:
+ * The rules use structural segregation to maintain a clear separation between user data,
+ * meetings, minutes of meetings, and templates. This enhances security and simplifies access control.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secure user profiles. Only the authenticated user can read/write their own profile.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user with matching userId can create their profile.
+     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete their profile.
+     * @deny (create) - Authenticated user trying to create a profile with a mismatched userId.
+     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's profile.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secure meeting data. Only the owner (authenticated user) can read/write meetings under their profile.
+     * @path /users/{userId}/meetings/{meetingId}
+     * @allow (create) - Authenticated user with matching userId can create a meeting under their profile.
+     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete meetings under their profile.
+     * @deny (create) - Authenticated user trying to create a meeting with a mismatched userId.
+     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's meeting.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/meetings/{meetingId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secure minutes of meeting data. Only the owner (authenticated user) can read/write MoM data under their meetings.
+     * @path /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}
+     * @allow (create) - Authenticated user with matching userId can create MoM data under their meeting.
+     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete MoM data under their meeting.
+     * @deny (create) - Authenticated user trying to create MoM data with a mismatched userId.
+     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's MoM data.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secure templates. Only the owner (authenticated user) can read/write templates under their profile.
+     * @path /users/{userId}/templates/{templateId}
+     * @allow (create) - Authenticated user with matching userId can create a template under their profile.
+     * @allow (get, update, delete) - Authenticated user with matching userId can get, update, and delete templates under their profile.
+     * @deny (create) - Authenticated user trying to create a template with a mismatched userId.
+     * @deny (get, update, delete) - Authenticated user trying to get, update, or delete another user's template.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/templates/{templateId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

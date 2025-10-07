@@ -1,0 +1,236 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the MinuteMind application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "organization": {
+          "type": "string",
+          "description": "The organization the user belongs to (optional)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Meeting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Meeting",
+      "type": "object",
+      "description": "Represents a meeting and its associated information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the meeting entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Meeting)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the meeting."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Date and time the meeting started.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Date and time the meeting ended.",
+          "format": "date-time"
+        },
+        "transcript": {
+          "type": "string",
+          "description": "The full transcript of the meeting."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "startTime",
+        "endTime",
+        "transcript"
+      ]
+    },
+    "MinutesOfMeeting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MinutesOfMeeting",
+      "type": "object",
+      "description": "Represents the generated Minutes of Meeting document.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Minutes of Meeting entity."
+        },
+        "meetingId": {
+          "type": "string",
+          "description": "Reference to Meeting. (Relationship: Meeting 1:1 MinutesOfMeeting)"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "Reference to Template. (Relationship: Template 1:1 MinutesOfMeeting)"
+        },
+        "momData": {
+          "type": "string",
+          "description": "Json string which represent structured MoM data which will populate template"
+        },
+        "generatedDate": {
+          "type": "string",
+          "description": "Date and time the MoM was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "meetingId",
+        "momData",
+        "generatedDate"
+      ]
+    },
+    "Template": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Template",
+      "type": "object",
+      "description": "Represents a template used for generating Minutes of Meeting.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the template entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Template)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the template."
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "URL where the template file is stored."
+        },
+        "type": {
+          "type": "string",
+          "description": "The format of the file"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "fileUrl"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "user",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data. Path-based ownership ensures only the user can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/meetings/{meetingId}",
+        "definition": {
+          "entityName": "meeting",
+          "schema": {
+            "$ref": "#/backend/entities/Meeting"
+          },
+          "description": "Stores meeting data for a specific user. Path-based ownership is used.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "meetingId",
+              "description": "The unique identifier for the meeting."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}",
+        "definition": {
+          "entityName": "MinutesOfMeeting",
+          "schema": {
+            "$ref": "#/backend/entities/MinutesOfMeeting"
+          },
+          "description": "Stores Minutes of Meeting data for a specific meeting. Path-based ownership ensures only the user who owns the meeting can access its minutes.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "meetingId",
+              "description": "The unique identifier for the meeting."
+            },
+            {
+              "name": "momId",
+              "description": "The unique identifier for the Minutes of Meeting."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/templates/{templateId}",
+        "definition": {
+          "entityName": "template",
+          "schema": {
+            "$ref": "#/backend/entities/Template"
+          },
+          "description": "Stores templates created by a specific user.  Path-based ownership ensures only the user who created the template can access it.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "templateId",
+              "description": "The unique identifier for the template."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to securely manage user data, meetings, minutes of meetings (MoM), and templates while adhering to the principles of Authorization Independence and Structural Segregation. It leverages path-based ownership for private user data and avoids using `get()` calls in security rules by denormalizing necessary authorization information. This approach ensures that security rules are simple, robust, and easily debuggable. Each collection is designed with a homogeneous security posture to streamline access control.\n\n*   **Users:** User profiles are stored under `/users/{userId}` using path-based ownership. This makes securing user-specific data straightforward.\n*   **Meetings:** Each user's meetings are stored in a subcollection `/users/{userId}/meetings/{meetingId}`.  This enforces ownership and simplifies access control rules.\n*   **Minutes of Meeting (MoM):** MoM documents are stored as a subcollection of meetings, `/users/{userId}/meetings/{meetingId}/minutesOfMeeting/{momId}`. This maintains the relationship between meetings and their corresponding MoM documents. Each document contains only data of the user's MoM.\n*   **Templates:** Templates are stored in `/users/{userId}/templates/{templateId}`. Path-based ownership ensures only the user who created the template can access it. \n\nThis structure ensures Authorization Independence by avoiding the need for `get()` calls in security rules. It supports secure `list` operations (QAPs) by using structural segregation; each subcollection inherently belongs to a user, preventing unauthorized access."
+  }
+}
