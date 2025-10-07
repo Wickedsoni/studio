@@ -95,10 +95,11 @@ body {
   [data-sidebar='sidebar'] {
     background-image: linear-gradient(
       to bottom right,
-      hsl(222.2 84% 4.9% / 0.9),
-      hsl(222.2 84% 10% / 0.9)
+      hsl(222.2 84% 4.9% / 0.7),
+      hsl(222.2 84% 10% / 0.7)
     );
     backdrop-filter: blur(8px);
+    border: 1px solid hsl(222.2 84% 4.9% / 0.1);
   }
 
   .dark body {
@@ -113,9 +114,10 @@ body {
   .dark [data-sidebar='sidebar'] {
     background-image: linear-gradient(
       to bottom right,
-      hsl(222.2 84% 4.9% / 0.8),
-      hsl(258 78% 30% / 0.8)
+      hsl(222.2 84% 4.9% / 0.6),
+      hsl(258 78% 30% / 0.6)
     );
     backdrop-filter: blur(8px);
+    border: 1px solid hsl(210 40% 98% / 0.1);
   }
 }
