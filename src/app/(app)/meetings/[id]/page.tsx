@@ -19,6 +19,8 @@ import {
   User,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function MeetingDetailsPage({
   params,
@@ -37,7 +39,7 @@ export default function MeetingDetailsPage({
       name: 'John Doe',
       email: 'john.doe@example.com'
     },
-    attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
+    attendees: ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi', 'Ivan', 'Judy'],
     agenda: 'To align on the goals, scope, and timeline for the Q3 project.',
     discussionPoints: [
       'Review of Q2 performance and key learnings.',
@@ -166,9 +168,25 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
                     </Badge>
                   ))}
                   {remainingAttendeesCount > 0 && (
-                     <Badge variant="outline">
-                      +{remainingAttendeesCount} more
-                    </Badge>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                          <Badge variant="outline" className="cursor-pointer">
+                            +{remainingAttendeesCount} more
+                          </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                           <ScrollArea className="h-48">
+                            <div className="p-4">
+                               <h4 className="mb-2 font-medium leading-none">All Attendees</h4>
+                               <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                {meeting.attendees.map((name) => (
+                                  <li key={name}>{name}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </ScrollArea>
+                        </PopoverContent>
+                      </Popover>
                   )}
                 </div>
               </div>
