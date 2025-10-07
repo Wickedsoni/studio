@@ -24,10 +24,11 @@ export default function MeetingDetailsPage({
 }: {
   params: { id: string };
 }) {
+  const resolvedParams = React.use(params);
   // In a real app, you would fetch meeting data based on params.id
   // For now, we'll use static data.
   const meeting = {
-    id: params.id,
+    id: resolvedParams.id,
     title: 'Q3 Project Kick-off',
     date: 'October 26, 2023',
     time: '10:00 AM - 10:45 AM',
