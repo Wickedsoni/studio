@@ -68,7 +68,7 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-background: transparent;
     --sidebar-foreground: 210 40% 96.1%;
     --sidebar-primary: 210 40% 98%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
@@ -85,5 +85,14 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  .dark body {
+    background-image: linear-gradient(to bottom right, hsl(222.2 84% 4.9%), hsl(258 78% 20%));
+  }
+
+  .dark [data-sidebar='sidebar'] {
+    background-image: linear-gradient(to bottom right, hsl(222.2 84% 4.9% / 0.8), hsl(258 78% 20% / 0.8));
+    backdrop-filter: blur(8px);
   }
 }
