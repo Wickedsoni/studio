@@ -1,7 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,24 +24,35 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-
+import type { GenerateMeetingSummaryOutput } from '@/ai/flows/generate-meeting-summary';
 
 export default function MeetingDetailsPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const resolvedParams = React.use(params);
+  const searchParams = useSearchParams();
+  const summaryParam = searchParams.get('summary');
+
+  const parsedSummary: GenerateMeetingSummaryOutput | null = React.useMemo(() => {
+    if (!summaryParam) return null;
+    try {
+      return JSON.parse(decodeURIComponent(summaryParam));
+    } catch (e) {
+      console.error("Failed to parse summary from URL", e);
+      return null;
+    }
+  }, [summaryParam]);
 
   const attendeeAvatars = PlaceHolderImages.filter(p => p.id.startsWith('attendee-avatar-'));
 
   // In a real app, you would fetch meeting data based on params.id
-  // For now, we'll use static data.
+  // For now, we'll use a mix of static data and the summary from the URL.
   const meeting = {
-    id: resolvedParams.id,
-    title: 'Q3 Project Kick-off',
-    date: 'October 26, 2023',
-    time: '10:00 AM - 10:45 AM',
+    id: params.id,
+    title: parsedSummary?.title || 'Meeting Details',
+    date: new Date().toLocaleDateString(),
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     host: {
       name: 'John Doe',
       email: 'john.doe@example.com'
@@ -50,32 +61,11 @@ export default function MeetingDetailsPage({
       { name: 'Alice', email: 'alice@example.com', avatar: attendeeAvatars[0]?.imageUrl, hint: attendeeAvatars[0]?.imageHint },
       { name: 'Bob', email: 'bob@example.com', avatar: attendeeAvatars[1]?.imageUrl, hint: attendeeAvatars[1]?.imageHint },
       { name: 'Charlie', email: 'charlie@example.com', avatar: attendeeAvatars[2]?.imageUrl, hint: attendeeAvatars[2]?.imageHint },
-      { name: 'David', email: 'david@example.com', avatar: attendeeAvatars[3]?.imageUrl, hint: attendeeAvatars[3]?.imageHint },
-      { name: 'Eve', email: 'eve@example.com', avatar: attendeeAvatars[4]?.imageUrl, hint: attendeeAvatars[4]?.imageHint },
-      { name: 'Frank', email: 'frank@example.com', avatar: attendeeAvatars[5]?.imageUrl, hint: attendeeAvatars[5]?.imageHint },
-      { name: 'Grace', email: 'grace@example.com', avatar: attendeeAvatars[6]?.imageUrl, hint: attendeeAvatars[6]?.imageHint },
-      { name: 'Heidi', email: 'heid@example.com', avatar: null, hint: 'female avatar' },
-      { name: 'Ivan', email: 'ivan@example.com', avatar: null, hint: 'male avatar' },
-      { name: 'Judy', email: 'judy@example.com', avatar: null, hint: 'female avatar' },
     ],
-    agenda: 'To align on the goals, scope, and timeline for the Q3 project.',
-    discussionPoints: [
-      'Review of Q2 performance and key learnings.',
-      "Presentation of the new project's goals and objectives.",
-      'Discussion on proposed timeline and milestones.',
-      'Resource allocation and team roles.',
-      'Q&A session.',
-    ],
-    decisions: [
-      'The proposed timeline is approved.',
-      'Alice will be the project lead.',
-      'The team will use the new project management tool.',
-    ],
-    actionItems: [
-      'Bob to create the project board by EOD Friday.',
-      'Charlie to schedule a follow-up meeting with the design team.',
-      'Eve to finalize the resource allocation sheet by Monday.',
-    ],
+    agenda: parsedSummary?.summary.agenda || 'No agenda provided.',
+    discussionPoints: parsedSummary?.summary.discussionPoints || [],
+    decisions: parsedSummary?.summary.decisions || [],
+    actionItems: parsedSummary?.summary.actionItems || [],
   };
 
   const generateMinutesText = () => {

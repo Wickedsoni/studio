@@ -7,6 +7,7 @@ import {NewMeetingDialog} from '@/components/dashboard/new-meeting-dialog';
 import {Button} from '@/components/ui/button';
 import {Plus, Loader2} from 'lucide-react';
 import {transcribeMeeting} from '@/ai/flows/transcribe-meeting';
+import { generateMeetingSummary } from '@/ai/flows/generate-meeting-summary';
 
 export default function MeetPage() {
   const {meetingInfo, startCollaboration, isAddon, setAddonState} =
@@ -24,24 +25,42 @@ export default function MeetPage() {
     if (!isAddon) return;
     setIsProcessing(true);
     try {
-      // In a real scenario, you'd get the meeting recording URI.
-      // For this example, we'll use a placeholder.
-      // This would ideally come from the Meet Add-on SDK after a recording is saved.
-      const mockMeetingDataUri = 'data:text/plain;base64,';
-      const result = await transcribeMeeting({meetingDataUri: mockMeetingDataUri});
+      // For a real add-on, you'd get a recording. For this test, we'll use a mock transcript.
+      const mockTranscript = `
+        Meeting Title: Q4 Marketing Strategy
+        Host: John Doe
+        Attendees: Alice, Bob, Charlie
+        Date: October 27, 2023
+        Time: 2:00 PM
+
+        John: Alright everyone, let's kick off the Q4 marketing strategy meeting. Alice, can you start with the campaign overview?
+        Alice: Thanks, John. Our main goal for Q4 is to increase lead generation by 20%. We'll focus on three key channels: social media, content marketing, and a new partnership with a tech influencer. The main campaign will be called 'Future Forward'.
+        Bob: I like the name. For content, I propose a series of blog posts and a downloadable ebook on 'AI in the Workplace'. This will support the 'Future Forward' theme and capture leads.
+        Charlie: On the social media front, we'll run targeted ads on LinkedIn and Twitter. We should also do a live Q&A session with the tech influencer to maximize reach.
+        John: Excellent points. Let's make some decisions. We're green-lighting the 'Future Forward' campaign. The blog series and ebook are approved. Charlie, please finalize the influencer agreement by next week.
+        Alice: I'll get the master project plan updated with these details.
+        John: Great. Action item for Bob: draft the first two blog posts by the end of the month. Action item for Alice: send the updated project plan to everyone. That's a wrap. Thanks, everyone.
+      `;
+      const mockMeetingDataUri = `data:text/plain;base64,${Buffer.from(mockTranscript).toString('base64')}`;
+
+      // 1. Transcribe (in this case, just passing the text)
+      const transcriptionResult = await transcribeMeeting({meetingDataUri: mockMeetingDataUri});
       
-      // The meeting ID should come from the meetingInfo or a newly created one.
+      // 2. Generate Summary from transcription
+      const summaryResult = await generateMeetingSummary({transcript: transcriptionResult.transcription});
+      
       const meetingId = meetingInfo?.meetingId || `meet-${Date.now()}`;
       
-      // Store result and navigate. This part is still conceptual.
-      // In a real app, you would save the transcription and summary before navigating.
-      console.log('Transcription result:', result);
+      // In a real app, you would save the transcription and summary to Firestore here.
+      // For now, we'll pass the summary to the meeting page via query params for demonstration.
+      const summaryQueryParam = encodeURIComponent(JSON.stringify(summaryResult));
+      const finalUrl = `/meetings/${meetingId}?summary=${summaryQueryParam}`;
 
-      // We're updating the addon state, which would be visible to all participants
-      setAddonState(JSON.stringify({page: `/meetings/${meetingId}`}));
+      // This updates the URL for all participants in the add-on
+      setAddonState(JSON.stringify({page: finalUrl}));
 
-      // For now, let's just simulate the end of processing.
-      router.push(`/meetings/${meetingId}`);
+      // And navigates the current user
+      router.push(finalUrl);
 
     } catch (error) {
       console.error('Error processing new meeting:', error);
