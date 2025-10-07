@@ -15,26 +15,25 @@ const TranscribeMeetingInputSchema = z.object({
   meetingDataUri: z
     .string()
     .describe(
-      'A meeting recording or transcript as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.' 
+      "A meeting recording or transcript as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
-export type TranscribeMeetingInput = z.infer<typeof TranscribeMeetingInputSchema>;
+export type TranscribeMeetingInput = z.infer<
+  typeof TranscribeMeetingInputSchema
+>;
 
 const TranscribeMeetingOutputSchema = z.object({
   transcription: z.string().describe('The transcription of the meeting.'),
 });
-export type TranscribeMeetingOutput = z.infer<typeof TranscribeMeetingOutputSchema>;
+export type TranscribeMeetingOutput = z.infer<
+  typeof TranscribeMeetingOutputSchema
+>;
 
-export async function transcribeMeeting(input: TranscribeMeetingInput): Promise<TranscribeMeetingOutput> {
+export async function transcribeMeeting(
+  input: TranscribeMeetingInput
+): Promise<TranscribeMeetingOutput> {
   return transcribeMeetingFlow(input);
 }
-
-const transcribeMeetingPrompt = ai.definePrompt({
-  name: 'transcribeMeetingPrompt',
-  input: {schema: TranscribeMeetingInputSchema},
-  output: {schema: TranscribeMeetingOutputSchema},
-  prompt: `Transcribe the following meeting recording or transcript.\n\nMeeting Data: {{meetingDataUri}}`,
-});
 
 const transcribeMeetingFlow = ai.defineFlow(
   {
@@ -43,7 +42,10 @@ const transcribeMeetingFlow = ai.defineFlow(
     outputSchema: TranscribeMeetingOutputSchema,
   },
   async input => {
-    const {output} = await transcribeMeetingPrompt(input);
-    return output!;
+    const llmResponse = await ai.generate({
+      prompt: `Transcribe the following meeting recording or transcript.\n\nMeeting Data: {{media url="${input.meetingDataUri}"}}`,
+    });
+    const transcription = llmResponse.text;
+    return {transcription};
   }
 );
