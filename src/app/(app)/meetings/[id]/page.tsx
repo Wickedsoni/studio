@@ -53,9 +53,8 @@ export default function MeetingDetailsPage({
     ],
   };
 
-  const generateMailtoLink = () => {
-    const subject = `Minutes of Meeting: ${meeting.title}`;
-    const body = `
+  const generateMinutesText = () => {
+    return `
 Meeting: ${meeting.title}
 Date: ${meeting.date}
 Time: ${meeting.time}
@@ -74,9 +73,26 @@ ${meeting.decisions.map((decision) => `- ${decision}`).join('\n')}
 
 Action Items:
 ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
-    `;
+    `.trim();
+  };
 
+  const generateMailtoLink = () => {
+    const subject = `Minutes of Meeting: ${meeting.title}`;
+    const body = generateMinutesText();
     return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const handleDownload = () => {
+    const text = generateMinutesText();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `minutes-${meeting.title.replace(/\s+/g, '-').toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -88,10 +104,10 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
             <p className="text-muted-foreground">Minutes of Meeting</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" /> Print
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" /> Download
             </Button>
             <Button asChild>
