@@ -98,7 +98,7 @@ ${meeting.actionItems.map((item) => `- ${item}`).join('\n')}
   return (
     <div className="flex-1 p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex flex-row items-center justify-between gap-4">
+        <div className="mb-8 space-y-4">
           <div>
             <h1 className="text-3xl font-bold font-headline">{meeting.title}</h1>
             <p className="text-muted-foreground">Minutes of Meeting</p>
