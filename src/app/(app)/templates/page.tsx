@@ -50,10 +50,6 @@ export default function TemplatesPage() {
                 <Button size="sm" className="w-full">
                   Use Template
                 </Button>
-                <Button size="sm" variant="secondary" className="w-full">
-                  <Lightbulb className="mr-2 h-4 w-4" />
-                  Suggest New
-                </Button>
               </CardFooter>
             </Card>
           ))}
